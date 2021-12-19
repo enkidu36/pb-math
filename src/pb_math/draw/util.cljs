@@ -17,14 +17,14 @@
    :y (/ (canvas-attr mc "height") 2)})
 
 (defn canvas-component
-  ([draw-fn] (canvas-component draw-fn "red"))
+  ([draw-fn] (canvas-component draw-fn "black"))
   ([draw-fn color]
    (r/create-class
      {:display-name   "canvas"
       :component-did-mount
                       (fn [this]
                         (js/console.log "canvas did mount ")
-                        (draw-fn (get-canvas) "orange"))
+                        (draw-fn (get-canvas)))
       :reagent-render (fn [mounted]
                         (js/console.log "reagent render ")
                         [:canvas#canvas {:width 600 :height 600 :style {:border (str "2px solid " color)}}])})))

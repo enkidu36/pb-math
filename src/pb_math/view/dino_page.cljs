@@ -52,7 +52,7 @@
         h (get-chart-dim "height")
         w (get-chart-dim "width")
         background (:background @chart)]
-    (mc/add-entity (:canvas @chart) "backgrounddddddddddddddddddd" (rect [padding padding] [h w] background))))
+    (mc/add-entity (:canvas @chart) "background" (rect [padding padding] [h w] background))))
 
 (defn remove-entities [entities]
   (dotimes [n (count entities)]
@@ -76,6 +76,7 @@
 
 (defn init-chart []
   (let [init-controls @(re-frame/subscribe [::set-init-controls])]
+    (js/console.log "init-chart " init-controls)
     (when (::show-background init-controls)
       (add-background))
     (when (::show-axis init-controls)
@@ -83,23 +84,19 @@
     (when (::show-gridlines init-controls)
       (add-gridlines))))
 
+(defn draw-dino-points []
+  (dotimes [pt (count dino)]
+    (mc/add-entity (:canvas @chart) (gensym ":pt") (make-point (nth dino pt)))))
+
 (defn draw-chart []
-  (let [canvas (:canvas @chart)]
-    (init-chart)
-    (dotimes [pt (count dino)]
-      (mc/add-entity canvas (gensym ":pt") (make-point (nth dino pt))))))
+  (init-chart))
 
 (re-frame/reg-event-db
   ::set-init-controls
   (fn [db [_]]
     (js/console.log "set-controls")
     (assoc db ::chart-controls
-              {::show-background true ::show-axis true ::show-gridlines true})))
-
-(re-frame/reg-sub
-  ::set-init-controls
-  (fn [db]
-    (::chart-controls db)))
+              {::show-background false ::show-axis false ::show-gridlines false})))
 
 (re-frame/reg-event-fx
   ::toggle-control
@@ -110,10 +107,20 @@
       {:db new-db
        ::toggle (get-in new-db [::chart-controls])})))
 
+(re-frame/reg-sub
+  ::set-init-controls
+  (fn [db]
+    (::chart-controls db)))
+
+(re-frame/reg-sub
+  ::chart-controls
+  (fn [db]
+    (::chart-controls db)))
+
 (re-frame/reg-fx
   ::toggle
   (fn [control-db]
-    (js/console.log "controls" control-db)
+    (js/console.log "toggle reg-fx" control-db)
     (if (::show-background control-db)
       (add-background)
       (remove-entities ["background"]))
@@ -124,32 +131,30 @@
       (add-gridlines)
       (remove-gridlines))))
 
-(defn draw [canvas color]
+(defn draw [canvas]
   (let [ctx (:ctx canvas)]
     (swap! chart assoc :canvas canvas)
     (re-frame/dispatch [::set-init-controls])
-    (draw-chart)))
+    (draw-chart)
+    (draw-dino-points)))
 
 (defn controls []
-  (let [init-controls @(re-frame/subscribe [::set-init-controls])]
+  (let [controls  (re-frame/subscribe [::chart-controls])]
+    (js/console.log "chart controls" controls)
     (fn []
-      (js/console.log "controls")
       [:> mui/FormGroup
        [:> mui/FormControlLabel
         {:label "Background"
-         :control (r/as-element [:> mui/Checkbox (merge
-                                                   {:on-click #(re-frame/dispatch [::toggle-control ::show-background])}
-                                                   (when (::show-background init-controls) {:default-checked "true"}))])}]
+         :control (r/as-element [:> mui/Checkbox  {:on-click #(re-frame/dispatch [::toggle-control ::show-background])
+                                                   :checked (if controls (::show-background @controls) false)}])}]
        [:> mui/FormControlLabel
         {:label "Axis"
-         :control (r/as-element [:> mui/Checkbox (merge
-                                                   {:on-click #(re-frame/dispatch [::toggle-control ::show-axis])}
-                                                   (when (::show-axis init-controls) {:default-checked "true"}))])}]
+         :control (r/as-element [:> mui/Checkbox  {:on-click #(re-frame/dispatch [::toggle-control ::show-axis])
+                                                   :checked (if controls (::show-axis @controls) false)}])}]
        [:> mui/FormControlLabel
         {:label "Gridlines"
-         :control (r/as-element [:> mui/Checkbox (merge
-                                                   {:on-click #(re-frame/dispatch [::toggle-control ::show-gridlines])}
-                                                   (when (::show-gridlines init-controls) {:default-checked "true"}))])}]])))
+         :control (r/as-element [:> mui/Checkbox  {:on-click #(re-frame/dispatch [::toggle-control ::show-gridlines])
+                                                   :checked (if controls (::show-gridlines @controls) false)}])}]])))
 
 (defn dino-page []
   (let [mounted (r/atom false)]
@@ -157,14 +162,12 @@
       [:<>
        [:> mui/Grid
         {:container true
-         :spacing 40
+         ;:spacing 40
          :justify "space-around"
          :style {:padding 50}}
         [:> mui/Grid {:item true}
-         [utils/canvas-component draw]]
+         [utils/canvas-component draw "blue"]]
         [:> mui/Grid
          {:item true
-          :spacing 22
-          :justify ""
-          :style {:background-color "inherit"}}
+           :style {:background-color "inherit"}}
          [controls]]]])))

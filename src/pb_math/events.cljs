@@ -21,4 +21,4 @@
 
 (re-frame/reg-fx :push-state
   (fn [route]
-    (apply rfe/push-state route)))
+    (apply rfc/push-state route)))
