@@ -1,0 +1,11 @@
+{:deps    {org.clojure/clojurescript       {:mvn/version "1.10.773"}
+           com.bhauman/figwheel-main       {:mvn/version "0.2.11"}
+           com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4" :exclusions [org.clojure/clojurescript]}
+           reagent/reagent                         {:mvn/version "1.0.0"}
+           metosin/reitit                  {:mvn/version "0.5.12"}
+           re-frame/re-frame                        {:mvn/version "1.2.0"}
+           rm-hull/monet                   {:mvn/version "0.3.0"}
+           cljsjs/material-ui              {:mvn/version "4.11.0-0"}
+           cljsjs/material-ui-icons        {:mvn/version "4.4.1-0"}}
+ :paths   ["src" "target" "resources"]
+ :aliases {:build-dev {:main-opts ["-m" "figwheel.main" "-b" "pb-math" "-r"]}}}
