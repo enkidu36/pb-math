@@ -29,7 +29,7 @@
           (c/fill-rect val)
           (c/restore)))))
 
-(defn line [[x y] [x2 y2] width color]
+(defn line [[x y] [x2 y2] width color [x3 y3]]
   (c/entity
     {:x x :y y :x2 x2 :y2 y2 :width width :color color}
     nil
@@ -37,9 +37,24 @@
       (-> ctx
           (c/save)
           (c/begin-path)
+          (c/translate x3 y3)
+          (c/scale 1 -1)
           (c/move-to x y)
           (c/line-to x2 y2)
           (c/stroke-style color)
           (c/stroke-width width)
           (c/stroke)
           (c/restore)))))
+
+(defn text [[x y] text width color]
+  (c/entity
+    {:text text :x x :y y :width width :color color}
+    nil
+    (fn [ctx attributes]
+       (-> ctx
+           (c/save)
+           (c/font-style "12px serif")
+           (c/text-baseline "hanging")
+           (c/text attributes)
+           (c/restore)))))
+
